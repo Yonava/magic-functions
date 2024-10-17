@@ -1,4 +1,4 @@
-import type { Coordinate } from "./types"
+import type { Coordinate, Line } from "./types"
 
 /**
  * @description rotates a point around a center point by a given angle in radians
@@ -79,4 +79,33 @@ export const getLargestAngularSpace = (center: Coordinate, points: Coordinate[])
   }
 
   return (angles[maxAngularDistanceIndex] + maxAngularDistance / 2) % (2 * Math.PI)
+}
+
+export const calculateLineSegmentEndpointsGivenSegmentCenterPoint = (
+  lineStart: Coordinate,
+  lineEnd: Coordinate,
+  width: number,
+  lineCenter: Coordinate
+): Line => {
+  const dx = lineEnd.x - lineStart.x;
+  const dy = lineEnd.y - lineStart.y;
+
+  const length = Math.sqrt(dx * dx + dy * dy);
+  const unitDx = dx / length;
+  const unitDy = dy / length;
+
+  const halfWidth = width / 2;
+  const offsetX = unitDx * halfWidth;
+  const offsetY = unitDy * halfWidth;
+
+  const start: Coordinate = {
+    x: lineCenter.x - offsetX,
+    y: lineCenter.y - offsetY
+  };
+  const end: Coordinate = {
+    x: lineCenter.x + offsetX,
+    y: lineCenter.y + offsetY
+  };
+
+  return { start, end };
 }

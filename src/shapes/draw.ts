@@ -1,7 +1,7 @@
 /*
   This file contains helper functions for drawing shapes on the canvas.
 */
-import { getAngle } from "./helpers";
+import { getAngle, calculateLineSegmentEndpointsGivenSegmentCenterPoint } from "./helpers";
 import {
   LINE_DEFAULTS,
   TEXT_DEFAULTS,
@@ -124,7 +124,9 @@ export const drawTextAreaWithCtx = (ctx: CanvasRenderingContext2D) => ({
       text,
       at: getLocationTextAreaOnLine(line),
     }
-    drawTextAreaMatte(ctx)(fullTextArea);
+    const { width, height } = getTextAreaDimension(fullTextArea);
+    const matteLine = calculateLineSegmentEndpointsGivenSegmentCenterPoint(line.start, line.end, width, { x: fullTextArea.at.x + width / 2, y: fullTextArea.at.y + height / 2 })
+    drawTextAreaMatte(ctx)(matteLine, fullTextArea);
     drawText(ctx)(fullTextArea);
   },
   arrow: (arrow: Arrow) => {
@@ -142,7 +144,10 @@ export const drawTextAreaWithCtx = (ctx: CanvasRenderingContext2D) => ({
       text,
       at: getLocationTextAreaOnArrow(arrow),
     }
-    drawTextAreaMatte(ctx)(fullTextArea);
+
+    const { width, height } = getTextAreaDimension(fullTextArea);
+    const matteLine = calculateLineSegmentEndpointsGivenSegmentCenterPoint(arrow.start, arrow.end, width, { x: fullTextArea.at.x + width / 2, y: fullTextArea.at.y + height / 2 })
+    drawTextAreaMatte(ctx)(matteLine, fullTextArea);
     drawText(ctx)(fullTextArea);
   },
 })
@@ -158,14 +163,23 @@ export const getTextAreaDimension = (textArea: DeepRequired<TextArea>) => ({
   height: textArea.text.fontSize * 2,
 });
 
-export const drawTextAreaMatte = (ctx: CanvasRenderingContext2D) => (textArea: DeepRequired<TextArea>) => {
-  const { width, height } = getTextAreaDimension(textArea);
-  drawSquareWithCtx(ctx)({
-    at: { x: textArea.at.x, y: textArea.at.y },
+export const drawTextAreaMatte = (ctx: CanvasRenderingContext2D) => (matteLine: Line, textArea: DeepRequired<TextArea>) => {
+
+  const {
+    start,
+    end,
     width,
-    height,
-    color: textArea.color,
-  });
+    color
+  } = {
+    ...matteLine,
+    ...LINE_DEFAULTS
+  }
+  drawLineWithCtx(ctx)({
+    start,
+    end,
+    width: width + 2,
+    color: textArea.color
+  })
 }
 
 export const drawText = (ctx: CanvasRenderingContext2D) => (textArea: DeepRequired<TextArea>) => {
