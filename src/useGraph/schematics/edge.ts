@@ -1,5 +1,5 @@
 import type { GEdge, GNode, LineSchemaItem, ArrowSchemaItem, ArrowUTurnSchemaItem } from '../types'
-import { getValue, getFromToNodes, resolveThemeForEdge } from '../helpers'
+import { getValue, getFromToNodes } from '../helpers'
 import type { BaseGraphTheme } from '../themes'
 import { getLargestAngularSpace } from '@/shapes/helpers'
 
@@ -19,15 +19,17 @@ export const getEdgeSchematic = (
   const isBidirectional = edges.some(e => e.from === to.label && e.to === from.label)
   const isSelfDirecting = to === from
 
-  const spacingFromNode = 3
+  const spacingAwayFromNode = 3
 
-  const nodeSizeVal = getValue(graphTheme.nodeSize, to) + spacingFromNode
+  const fromNodeSize = getValue(graphTheme.nodeSize, from) + spacingAwayFromNode
+  const toNodeSize = getValue(graphTheme.nodeSize, to) + spacingAwayFromNode
+
 
   const angle = Math.atan2(to.y - from.y, to.x - from.x);
 
   const epiCenter = {
-    x: to.x - nodeSizeVal * Math.cos(angle),
-    y: to.y - nodeSizeVal * Math.sin(angle),
+    x: to.x - toNodeSize * Math.cos(angle),
+    y: to.y - toNodeSize * Math.sin(angle),
   }
 
   const start = { x: from.x, y: from.y }
@@ -135,5 +137,11 @@ export const getEdgeSchematic = (
     graphType: 'edge',
   } as const
 
-  return isSelfDirecting ? selfDirectedEdgeLine : edgeLine
+
+  if (isSelfDirecting) return selfDirectedEdgeLine
+  else {
+    const sumOfToAndFromNodeSize = fromNodeSize + toNodeSize
+    const distanceSquaredBetweenNodes = (from.x - to.x) ** 2 + (from.y - to.y) ** 2
+    if (sumOfToAndFromNodeSize ** 2 < distanceSquaredBetweenNodes) return edgeLine
+  }
 }
